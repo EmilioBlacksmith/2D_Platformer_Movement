@@ -6,51 +6,43 @@ namespace OcelotDev
     {
         [Header("Movement")]
         public float movementSpeed = 12f;
-        public float horizontalMovement;
+        private float horizontalMovement;
+        private Rigidbody2D rB;
 
-        [Header("Gravity")]
+        [Header("Jumping")]
+        public float jumpForce = 20f;
+        private bool justJumped = false;
+
+        [Header("Ground")]
         public bool onGround = false;
-        public float JumpForce = 20f;
-        private Rigidbody2D rgb;
-
-        [Header("Raycast")]
-        public float groundLength = 0.6f;
-        public Vector3 colliderOffset;
-        public LayerMask groundLayer;
+        public Collider2D floorCollider;
+        public ContactFilter2D floorFilter;
 
         private void Start()
         {
-            rgb = GetComponent<Rigidbody2D>();
+            rB = GetComponent<Rigidbody2D>();
+        }
+        
+        private void Update()
+        {
+            horizontalMovement = Input.GetAxisRaw("Horizontal");
+
+            onGround = floorCollider.IsTouching(floorFilter);
+            
+            
+            if (!justJumped && Input.GetKeyDown(KeyCode.Space) && onGround)
+                justJumped = true;
         }
 
         private void FixedUpdate()
         {
-            horizontalMovement = Input.GetAxisRaw("Horizontal");
-        }
+            rB.velocity = new Vector2(horizontalMovement * movementSpeed, rB.velocity.y);
 
-        private void LateUpdate()
-        {
-            transform.Translate(new Vector3(horizontalMovement, 0f, 0f) * movementSpeed * Time.deltaTime);
-
-            onGround = Physics2D.Raycast(transform.position + colliderOffset, Vector2.down, groundLength, groundLayer)
-                || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer);
-
-            if(Input.GetKeyDown(KeyCode.Space) && onGround)
+            if(justJumped)
             {
-                Jump();
+                justJumped = false;
+                rB.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             }
-        }
-
-        void Jump()
-        {
-            rgb.AddForce(Vector2.up * JumpForce, ForceMode2D.Impulse);
-        }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.red;
-            Gizmos.DrawLine(transform.position + colliderOffset, transform.position + colliderOffset + Vector3.down * groundLength);
-            Gizmos.DrawLine(transform.position - colliderOffset, transform.position - colliderOffset + Vector3.down * groundLength);
         }
     }
 }
