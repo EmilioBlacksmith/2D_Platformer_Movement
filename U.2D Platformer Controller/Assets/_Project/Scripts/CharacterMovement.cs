@@ -18,10 +18,7 @@ namespace OcelotDev
         public Collider2D floorCollider;
         public ContactFilter2D floorFilter;
 
-        private void Start()
-        {
-            rB = GetComponent<Rigidbody2D>();
-        }
+        private void Start() => rB = GetComponent<Rigidbody2D>();
         
         private void Update()
         {
